@@ -1,4 +1,4 @@
-# Sage — AI Tutor
+# ScholarOS — AI Tutor
 
 An AI-powered tutor that teaches through Socratic questioning and interactive visualizations. Sage converses with students in real time using browser-native speech, renders math on Desmos/GeoGebra, runs science simulations in sandboxed HTML, and generates 3Blue1Brown-style animations via Manim.
 
