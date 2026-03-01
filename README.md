@@ -54,11 +54,6 @@ Student speaks  ──>  Web Speech Recognition (browser-native)
 |-------|----------|----|
 | Claude Sonnet 4.5 | Anthropic | `claude-sonnet-4-5-20250929` |
 | Claude Haiku 4.5 | Anthropic | `claude-haiku-4-5-20251001` |
-| Gemini 3 Pro | Google | `gemini-3-pro-preview` |
-| Gemini 3 Flash | Google | `gemini-3-flash-preview` |
-| GPT-4.1 | OpenAI | `gpt-4.1` |
-| Azure GPT-4o | Azure OpenAI | `azure-gpt-4o` |
-| Azure GPT-4o Mini | Azure OpenAI | `azure-gpt-4o-mini` |
 
 ---
 
@@ -66,56 +61,75 @@ Student speaks  ──>  Web Speech Recognition (browser-native)
 
 ### Prerequisites
 
-- Node.js 20+
-- pnpm 10+
-- PostgreSQL (Supabase recommended)
+- Node.js 20+ (install via [nvm](https://github.com/nvm-sh/nvm): `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && source ~/.bashrc && nvm install --lts`)
+- pnpm 10+ (`npm install -g pnpm@10.29.3`)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for Manim animations)
+- Chrome or Edge browser (Speech Recognition requires it)
 
-### Environment Variables
+### Step 1 — Environment Variables
 
-Create `.env.local`:
+Create `.env.local` in the project root:
 
 ```env
-# Database
-DATABASE_URL=postgresql://...
-
-# AI (at least one required)
+# Anthropic (required)
 ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_GENERATIVE_AI_API_KEY=...
-OPENAI_API_KEY=sk-...
 
-# Azure OpenAI (if using Azure models)
-AZURE_OPENAI_RESOURCE_NAME=your-resource-name
-AZURE_OPENAI_API_KEY=...
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+DATABASE_URL=postgresql://postgres.your-project:password@aws-X-region.pooler.supabase.com:6543/postgres
 
-# Supabase Auth
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+# Manim server
+NEXT_PUBLIC_MANIM_URL=http://localhost:5000
 
-# Optional
+# App URL
 NEXT_PUBLIC_URL=http://localhost:3000
-NEXT_PUBLIC_MANIM_URL=http://localhost:5001
-NEXT_PUBLIC_DESMOS_API_KEY=...
 ```
 
-> **Azure deployment names** must match the model suffix: `azure-gpt-4o` expects a deployment named `gpt-4o`.
+Create `manim-server/.env`:
 
-### Install & Run
+```env
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+FLASK_HOST=0.0.0.0
+FLASK_PORT=5000
+BASE_URL=http://localhost:5000
+```
+
+> **Supabase setup:** Create a free project at [supabase.com](https://supabase.com). Get your keys from Project Settings → Data API. For `DATABASE_URL`, use the **Transaction pooler** URI from Project Settings → Database.
+
+### Step 2 — Install & Run
 
 ```bash
 pnpm install
-pnpm db:migrate
-pnpm dev
+pnpm db:migrate       # creates 6 tables in Supabase
+pnpm dev              # starts Next.js on http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+### Step 3 — Manim Server (for math animations)
 
-### Manim Server (optional — for math animations)
+In a second terminal:
 
 ```bash
 cd manim-server
-docker build -t manim-server .
-docker run -p 5001:5001 manim-server
+docker build -t sage-manim .
+docker run -d --name sage-manim -p 5000:5000 --env-file .env sage-manim
 ```
+
+### Step 4 — Seed Demo Data (optional)
+
+```bash
+npx tsx src/db/seed.ts
+```
+
+Creates two demo students:
+
+| Name | Grade | PIN |
+|------|-------|-----|
+| Leo Wallace | 11th | `1234` |
+| Maya Wallace | 4th | `5678` |
+
+Open [http://localhost:3000](http://localhost:3000) in Chrome or Edge.
 
 ---
 
